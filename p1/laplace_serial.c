@@ -37,7 +37,7 @@ double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iterat
 
 //   helper routines
 void initialize();
-void track_progress(int iter);
+void track_progress(int iter, double dt);
 
 
 int main(int argc, char *argv[]) {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
         // periodically print test values
         if((iteration % 100) == 0) {
- 	    track_progress(iteration);
+ 	    track_progress(iteration, dt);
         }
 
 	iteration++;
@@ -122,13 +122,15 @@ void initialize(){
 
 
 // print diagonal in bottom right corner where most action is
-void track_progress(int iteration) {
+void track_progress(int iteration, double dt) {
 
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
+    printf( "[%d,%d]: %5.2f  ", 250, 900, Temperature[250][900] );
     for(i = ROWS-5; i <= ROWS; i++) {
         printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
     }
+    printf( "  max error=%7.4f  ", dt );
     printf("\n");
 }

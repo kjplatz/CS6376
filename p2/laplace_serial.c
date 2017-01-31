@@ -58,7 +58,6 @@ int main(int argc, char *argv[]) {
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
-        #pragma omp parallel for private(j)
         // main calculation: average my four neighbors
         for(i = 1; i <= ROWS; i++) {
             for(j = 1; j <= COLUMNS; j++) {
@@ -70,7 +69,6 @@ int main(int argc, char *argv[]) {
         dt = 0.0; // reset largest temperature change
 
         // copy grid to old grid for next iteration and find latest dt
-        #pragma omp parallel for private(j) reduction(max:dt)
         for(i = 1; i <= ROWS; i++){
             for(j = 1; j <= COLUMNS; j++){
 	      dt = fmax( fabs(Temperature[i][j]-Temperature_last[i][j]), dt);
@@ -129,7 +127,6 @@ void track_progress(int iteration) {
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf( "[%d,%d]: %5.2f  ", 950, 200, Temperature[250][900] );
     for(i = ROWS-5; i <= ROWS; i++) {
         printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
     }

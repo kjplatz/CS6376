@@ -39,6 +39,33 @@ double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iterat
 void initialize();
 void track_progress(int iter);
 
+__global__ void laplace( int rows, int cols, double** old, double** now ) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if ( !x || !y || x >= rows || y >= cols ) return;
+
+    int off = y * cols + x;
+    now[off] = ( old[off-cols] + old[off-1] + old[off+1] + old[off+cols] ) / 4;
+}
+
+__global__ void reduce( int rows, int cols, double** old, double** now ) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if ( !x || !y || x >= rows || y >= cols ) return;
+    int off = y * cols + x;
+    old[off] = fabs( now[off] - old[off] );
+
+    __syncthreads();
+    int xdim = blockDim.x, ydim = blockDim.y;
+
+    while( xdim > 1 || ydim > 1 ) {
+        if ( threadIdx.x > xdim || threadIdx.y > ydim ) return;
+        
+        __synchthreads();
+    }
+}
 
 int main(int argc, char *argv[]) {
 
@@ -51,6 +78,25 @@ int main(int argc, char *argv[]) {
     printf("Maximum iterations [100-4000]?\n");
     scanf("%d", &max_iterations);
 
+    int devices;
+    cudaError_t err;
+    if ( (err = cudaGetDeviceCount( &devices )) != cudaSuccess ) {
+        printf("Error in cudaGetDeviceCount(): %s\n", cudaGetErrorName( err ) );
+        return 1;
+    }
+
+    printf( "Detected %d CUDA devices\n", devices );
+    for( int i=0; i<devices; ++i ) {
+        cudaDeviceProp p;
+        if ( (err = cudaGetDeviceProperties( &p, i )) != cudaSuccess ) {
+            printf("Error in cudaGetDeviceProperties(%d): %s\n", i, cudaGetErrorName( err ) );
+            return 1;
+        }
+        
+        printf( "Found CUDA device %d : %s\n", i, p.name );
+    }
+
+    return 0;
 
     initialize();                   // initialize Temp_last including boundary conditions
     gettimeofday(&start_time,NULL); // Unix timer
@@ -58,7 +104,6 @@ int main(int argc, char *argv[]) {
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
-        #pragma omp parallel for private(j)
         // main calculation: average my four neighbors
         for(i = 1; i <= ROWS; i++) {
             for(j = 1; j <= COLUMNS; j++) {
@@ -70,7 +115,6 @@ int main(int argc, char *argv[]) {
         dt = 0.0; // reset largest temperature change
 
         // copy grid to old grid for next iteration and find latest dt
-        #pragma omp parallel for private(j) reduction(max:dt)
         for(i = 1; i <= ROWS; i++){
             for(j = 1; j <= COLUMNS; j++){
 	      dt = fmax( fabs(Temperature[i][j]-Temperature_last[i][j]), dt);
@@ -129,7 +173,6 @@ void track_progress(int iteration) {
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf( "[%d,%d]: %5.2f  ", 950, 200, Temperature[250][900] );
     for(i = ROWS-5; i <= ROWS; i++) {
         printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
     }
