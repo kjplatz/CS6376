@@ -25,20 +25,16 @@
 #include <math.h>
 #include <sys/time.h>
 
-// size of plate
-#define COLUMNS    1000
-#define ROWS       1000
-
-// largest permitted change in temp (This value takes about 3400 steps)
-#define MAX_TEMP_ERROR 0.01
+#include "config.h"
 
 double Temperature[ROWS+2][COLUMNS+2];      // temperature grid
 double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iteration
 
 //   helper routines
 void initialize();
-void track_progress(int iter);
+void track_progress(int iter, double dt);
 
+double jacobi_loop( int row, double* Temp, double* Temp_last );
 
 int main(int argc, char *argv[]) {
 
@@ -51,37 +47,37 @@ int main(int argc, char *argv[]) {
     printf("Maximum iterations [100-4000]?\n");
     scanf("%d", &max_iterations);
 
-
     initialize();                   // initialize Temp_last including boundary conditions
     gettimeofday(&start_time,NULL); // Unix timer
+
+    double* Temp = (double*)Temperature;
+    double* Temp_last = (double*)Temperature_last;
+    double* t;
 
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
-        #pragma omp parallel for private(j)
         // main calculation: average my four neighbors
-        for(i = 1; i <= ROWS; i++) {
-            for(j = 1; j <= COLUMNS; j++) {
-                Temperature[i][j] = 0.25 * (Temperature_last[i+1][j] + Temperature_last[i-1][j] +
-                                            Temperature_last[i][j+1] + Temperature_last[i][j-1]);
-            }
-        }
-        
         dt = 0.0; // reset largest temperature change
-
-        // copy grid to old grid for next iteration and find latest dt
-        #pragma omp parallel for private(j) reduction(max:dt)
-        for(i = 1; i <= ROWS; i++){
-            for(j = 1; j <= COLUMNS; j++){
-	      dt = fmax( fabs(Temperature[i][j]-Temperature_last[i][j]), dt);
-	      Temperature_last[i][j] = Temperature[i][j];
-            }
+        double ndt;
+        // #pragma omp parallel for reduction(max:dt) private(ndt)
+        for(i = 1; i <= ROWS; i++) {
+            // ndt = jacobi_loop( i, Temp, Temp_last );
+            // printf( "Iteration %d Row %d dt %f ndt %f\n", iteration, i, dt, ndt );
+            // dt = (dt > ndt) ? dt : ndt;
+            dt = fmax( ndt, jacobi_loop( i, Temp, Temp_last ) );
         }
 
+ 	track_progress(iteration, dt);
+        t = Temp;
+        Temp = Temp_last;
+        Temp_last = t;
+        
         // periodically print test values
-        if((iteration % 100) == 0) {
- 	    track_progress(iteration);
-        }
+//        if((iteration % 100) == 0) {
+ 	//    track_progress(iteration, dt);
+        //}
+
 
 	iteration++;
     }
@@ -124,14 +120,19 @@ void initialize(){
 
 
 // print diagonal in bottom right corner where most action is
-void track_progress(int iteration) {
+void track_progress(int iteration, double dt) {
 
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf( "[%d,%d]: %5.2f  ", 950, 200, Temperature[250][900] );
+    printf("Temperature");
     for(i = ROWS-5; i <= ROWS; i++) {
-        printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
+        printf(" [%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
+    }
+    printf( "  max error=%7.4f  \n", dt );
+    printf("Temp_last");
+    for(i = ROWS-5; i <= ROWS; i++) {
+        printf(" [%d,%d]: %5.2f  ", i, i, Temperature_last[i][i]);
     }
     printf("\n");
 }

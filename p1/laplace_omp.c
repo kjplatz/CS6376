@@ -92,6 +92,11 @@ int main(int argc, char *argv[]) {
     printf("\nMax error at iteration %d was %f\n", iteration-1, dt);
     printf("Total time was %f seconds.\n", elapsed_time.tv_sec+elapsed_time.tv_usec/1000000.0);
 
+    double gf = ROWS * COLUMNS * 5;
+    gf /= (elapsed_time.tv_sec + elapsed_time.tv_usec/1000000.0);
+    gf /= (1024 * 1024);
+    printf( "Performance = %5.2f Gflops\n", gf );
+
 }
 
 

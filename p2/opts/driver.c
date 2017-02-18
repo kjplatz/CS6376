@@ -22,12 +22,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <sys/time.h>
 
 // size of plate
-#define COLUMNS    1000
-#define ROWS       1000
+//#define COLUMNS    1000
+//#define ROWS       1000
+#include "config.h"
 
 // largest permitted change in temp (This value takes about 3400 steps)
 #define MAX_TEMP_ERROR 0.01
@@ -39,6 +41,7 @@ double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iterat
 void initialize();
 void track_progress(int iter);
 
+double jacobi_loop( double* Temp, double* Temp_old );
 
 int main(int argc, char *argv[]) {
 
@@ -58,7 +61,6 @@ int main(int argc, char *argv[]) {
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
-        #pragma omp parallel for private(j)
         // main calculation: average my four neighbors
         for(i = 1; i <= ROWS; i++) {
             for(j = 1; j <= COLUMNS; j++) {
@@ -70,7 +72,6 @@ int main(int argc, char *argv[]) {
         dt = 0.0; // reset largest temperature change
 
         // copy grid to old grid for next iteration and find latest dt
-        #pragma omp parallel for private(j) reduction(max:dt)
         for(i = 1; i <= ROWS; i++){
             for(j = 1; j <= COLUMNS; j++){
 	      dt = fmax( fabs(Temperature[i][j]-Temperature_last[i][j]), dt);
@@ -98,26 +99,19 @@ int main(int argc, char *argv[]) {
 // initialize plate and boundary conditions
 // Temp_last is used to to start first iteration
 void initialize(){
-
     int i,j;
 
-    for(i = 0; i <= ROWS+1; i++){
-        for (j = 0; j <= COLUMNS+1; j++){
-            Temperature_last[i][j] = 0.0;
-        }
-    }
-
+    memset( Temperature, 0, sizeof(Temperature) );
+    memset( Temperature_last, 0, sizeof(Temperature_last) );
     // these boundary conditions never change throughout run
 
     // set left side to 0 and right to a linear increase
     for(i = 0; i <= ROWS+1; i++) {
-        Temperature_last[i][0] = 0.0;
-        Temperature_last[i][COLUMNS+1] = (100.0/ROWS)*i;
+        Temperature_last[i][COLUMNS+1] = Temperature[i][COLUMNS+1] = (100.0/ROWS)*i;
     }
     
     // set top to 0 and bottom to linear increase
     for(j = 0; j <= COLUMNS+1; j++) {
-        Temperature_last[0][j] = 0.0;
         Temperature_last[ROWS+1][j] = (100.0/COLUMNS)*j;
     }
 }
@@ -129,7 +123,6 @@ void track_progress(int iteration) {
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf( "[%d,%d]: %5.2f  ", 950, 200, Temperature[250][900] );
     for(i = ROWS-5; i <= ROWS; i++) {
         printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
     }
