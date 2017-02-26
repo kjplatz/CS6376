@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <sys/time.h>
 
@@ -32,9 +33,9 @@ double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iterat
 
 //   helper routines
 void initialize();
-void track_progress(int iter, double dt);
+void track_progress(int iter, double dt, double*, double* );
 
-double jacobi_loop( int row, double* Temp, double* Temp_last );
+double jacobi_loop( int row, double *restrict Temp, double *restrict Temp_last );
 
 int main(int argc, char *argv[]) {
 
@@ -52,32 +53,25 @@ int main(int argc, char *argv[]) {
 
     double* Temp = (double*)Temperature;
     double* Temp_last = (double*)Temperature_last;
-    double* t;
 
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
-        // main calculation: average my four neighbors
         dt = 0.0; // reset largest temperature change
-        double ndt;
-        // #pragma omp parallel for reduction(max:dt) private(ndt)
+        // main calculation: average my four neighbors
+        #pragma omp parallel for reduction(max:dt)
         for(i = 1; i <= ROWS; i++) {
-            // ndt = jacobi_loop( i, Temp, Temp_last );
-            // printf( "Iteration %d Row %d dt %f ndt %f\n", iteration, i, dt, ndt );
-            // dt = (dt > ndt) ? dt : ndt;
-            dt = fmax( ndt, jacobi_loop( i, Temp, Temp_last ) );
+            dt = fmax( dt, jacobi_loop( i, Temp, Temp_last ) );
         }
-
- 	track_progress(iteration, dt);
-        t = Temp;
-        Temp = Temp_last;
-        Temp_last = t;
         
-        // periodically print test values
-//        if((iteration % 100) == 0) {
- 	//    track_progress(iteration, dt);
-        //}
+        double* tmp = Temp;
+        Temp = Temp_last;
+        Temp_last = tmp;
 
+        // periodically print test values
+        if((iteration % 100) == 0) {
+ 	    track_progress(iteration, dt, Temp, Temp_last);
+        }
 
 	iteration++;
     }
@@ -97,6 +91,8 @@ void initialize(){
 
     int i,j;
 
+    memset( Temperature_last, 0, sizeof(Temperature_last) );
+    memset( Temperature, 0, sizeof(Temperature) );
     for(i = 0; i <= ROWS+1; i++){
         for (j = 0; j <= COLUMNS+1; j++){
             Temperature_last[i][j] = 0.0;
@@ -108,31 +104,27 @@ void initialize(){
     // set left side to 0 and right to a linear increase
     for(i = 0; i <= ROWS+1; i++) {
         Temperature_last[i][0] = 0.0;
-        Temperature_last[i][COLUMNS+1] = (100.0/ROWS)*i;
+        Temperature[i][COLUMNS+1] = Temperature_last[i][COLUMNS+1] = (100.0/ROWS)*i;
     }
     
     // set top to 0 and bottom to linear increase
     for(j = 0; j <= COLUMNS+1; j++) {
         Temperature_last[0][j] = 0.0;
-        Temperature_last[ROWS+1][j] = (100.0/COLUMNS)*j;
+        Temperature[ROWS+1][j] = Temperature_last[ROWS+1][j] = (100.0/COLUMNS)*j;
     }
 }
 
 
 // print diagonal in bottom right corner where most action is
-void track_progress(int iteration, double dt) {
+void track_progress(int iteration, double dt, double *restrict Temperature, double *restrict Temperature_last) {
 
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf("Temperature");
+    printf( "[%d,%d]: %5.2f  ", 250, 900, Temperature[250*(COLUMNS+2)+900] );
     for(i = ROWS-5; i <= ROWS; i++) {
-        printf(" [%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
+        printf("[%d,%d]: %5.2f  ", i, i, Temperature[i*(COLUMNS+2)+i]);
     }
-    printf( "  max error=%7.4f  \n", dt );
-    printf("Temp_last");
-    for(i = ROWS-5; i <= ROWS; i++) {
-        printf(" [%d,%d]: %5.2f  ", i, i, Temperature_last[i][i]);
-    }
+    printf( "  max error=%7.4f  ", dt );
     printf("\n");
 }

@@ -56,13 +56,13 @@ int main(int argc, char *argv[]) {
     // do until error is minimal or until max steps
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
 
+        dt = 0.0; // reset largest temperature change
         // main calculation: average my four neighbors
         #pragma omp parallel for
         for(i = 1; i <= ROWS; i++) {
             jacobi_loop( i, Temp, Temp_last );
         }
         
-        dt = 0.0; // reset largest temperature change
 
         // copy grid to old grid for next iteration and find latest dt
         #pragma omp parallel for private(j) reduction(max:dt)
