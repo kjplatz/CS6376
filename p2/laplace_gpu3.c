@@ -23,19 +23,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <openacc.h>
-#include "openacc.h"
 #include <sys/time.h>
 
 // size of plate
-#define COLUMNS    4096
-#define ROWS       4096
+#define COLUMNS    8192
+#define ROWS       COLUMNS
 
 // largest permitted change in temp (This value takes about 3400 steps)
 #define MAX_TEMP_ERROR 0.01
 
-float Temperature[ROWS+2][COLUMNS+2];      // temperature grid
-float Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iteration
+double Temperature[ROWS+2][COLUMNS+2];      // temperature grid
+double Temperature_last[ROWS+2][COLUMNS+2]; // temperature grid from last iteration
 
 //   helper routines
 void initialize();
@@ -47,7 +45,7 @@ int main(int argc, char *argv[]) {
     int i, j;                                            // grid indexes
     int max_iterations;                                  // number of iterations
     int iteration=1;                                     // current iteration
-    float dt=100;                                       // largest change in t
+    double dt=100;                                       // largest change in t
     struct timeval start_time, stop_time, elapsed_time;  // timers
 
     printf("Maximum iterations [100-4000]?\n");
@@ -58,42 +56,32 @@ int main(int argc, char *argv[]) {
     gettimeofday(&start_time,NULL); // Unix timer
 
     // do until error is minimal or until max steps
-    #pragma acc data copyin(Temperature_last) copy(Temperature)
+    #pragma acc data copyin(Temperature_last) create(Temperature)
     while ( dt > MAX_TEMP_ERROR && iteration <= max_iterations ) {
-        void *dev_Temperature, *dev_Temperature_last;
-        dev_Temperature = acc_deviceptr(Temperature);
-        dev_Temperature_last = acc_deviceptr(Temperature_last);
         dt = 0.0; // reset largest temperature change
-
         // main calculation: average my four neighbors
         #pragma acc kernels loop reduction(max:dt)
         for(i = 1; i <= ROWS; i++) {
             for(j = 1; j <= COLUMNS; j++) {
                 Temperature[i][j] = 0.25 * (Temperature_last[i+1][j] + Temperature_last[i-1][j] +
                                             Temperature_last[i][j+1] + Temperature_last[i][j-1]);
-                dt = fmax(dt, fabs(Temperature[i][j] - Temperature_last[i][j]));
+	        dt = fmax( fabs(Temperature[i][j]-Temperature_last[i][j]), dt);
             }
         }
         
 
-#ifndef USE_ACC_MEMCPY
         // copy grid to old grid for next iteration and find latest dt
-        #pragma acc kernels loop 
+        #pragma acc kernels 
         for(i = 1; i <= ROWS; i++){
             for(j = 1; j <= COLUMNS; j++){
 	      Temperature_last[i][j] = Temperature[i][j];
             }
         }
-#else
-        acc_memcpy_device(dev_Temperature_last, dev_Temperature, sizeof(Temperature));
-#endif
 
         // periodically print test values
         if((iteration % 100) == 0) {
-            printf( "Iteration: %d DeltaT: %.2f\n", iteration, dt );
-            // #pragma acc data update host(Temperature)
-            // acc_update_host(Temperature, sizeof(Temperature));
- 	    // track_progress(iteration);
+            #pragma acc update host(Temperature)
+ 	    track_progress(iteration);
         }
 
 	iteration++;
@@ -104,10 +92,10 @@ int main(int argc, char *argv[]) {
 
     printf("\nMax error at iteration %d was %f\n", iteration-1, dt);
     printf("Total time was %f seconds.\n", elapsed_time.tv_sec+elapsed_time.tv_usec/1000000.0);
-
-    float gf = ROWS * COLUMNS * 5;
+    
+    double gf = 5.0 * ROWS * COLUMNS *  (iteration-1);
     gf /= (elapsed_time.tv_sec + elapsed_time.tv_usec/1000000.0);
-    gf /= (1024 * 1024);
+    gf /= (1000 * 1000 * 1000);
     printf( "Performance = %5.2f Gflops\n", gf );
 
 }
@@ -119,21 +107,25 @@ void initialize(){
 
     int i,j;
 
-    memset( (void*)Temperature, 0, sizeof(Temperature));
-    memset( (void*)Temperature_last, 0, sizeof(Temperature_last));
+    for(i = 0; i <= ROWS+1; i++){
+        for (j = 0; j <= COLUMNS+1; j++){
+            Temperature_last[i][j] = 0.0;
+        }
+    }
 
     // these boundary conditions never change throughout run
+
     // set left side to 0 and right to a linear increase
     for(i = 0; i <= ROWS+1; i++) {
-        Temperature[i][COLUMNS+1] = Temperature_last[i][COLUMNS+1] = (100.0/ROWS)*i;
+        Temperature_last[i][0] = 0.0;
+        Temperature_last[i][COLUMNS+1] = (100.0/ROWS)*i;
     }
     
     // set top to 0 and bottom to linear increase
     for(j = 0; j <= COLUMNS+1; j++) {
-        Temperature[ROWS+1][j] = Temperature_last[ROWS+1][j] = (100.0/COLUMNS)*j;
+        Temperature_last[0][j] = 0.0;
+        Temperature_last[ROWS+1][j] = (100.0/COLUMNS)*j;
     }
-
-    track_progress(0);
 }
 
 
@@ -143,8 +135,7 @@ void track_progress(int iteration) {
     int i;
 
     printf("---------- Iteration number: %d ------------\n", iteration);
-    printf( "Temp   :" );
-    for(i = ROWS-5; i <= ROWS+1; i++) {
+    for(i = ROWS-5; i <= ROWS; i++) {
         printf("[%d,%d]: %5.2f  ", i, i, Temperature[i][i]);
     }
     printf("\n");
