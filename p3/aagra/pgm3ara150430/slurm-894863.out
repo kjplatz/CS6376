@@ -1,0 +1,44 @@
++ export OMP_NUM_THREADS=2
++ OMP_NUM_THREADS=2
++ ./floyd_omp
+Total time was 8.378243 seconds.
++ export OMP_NUM_THREADS=3
++ OMP_NUM_THREADS=3
++ ./floyd_omp
+Total time was 5.759652 seconds.
++ export OMP_NUM_THREADS=4
++ OMP_NUM_THREADS=4
++ ./floyd_omp
+Total time was 4.542805 seconds.
++ export OMP_NUM_THREADS=5
++ OMP_NUM_THREADS=5
++ ./floyd_omp
+Total time was 3.573658 seconds.
++ export OMP_NUM_THREADS=6
++ OMP_NUM_THREADS=6
++ ./floyd_omp
+Total time was 3.064816 seconds.
++ export OMP_NUM_THREADS=8
++ OMP_NUM_THREADS=8
++ ./floyd_omp
+Total time was 2.291172 seconds.
++ export OMP_NUM_THREADS=12
++ OMP_NUM_THREADS=12
++ ./floyd_omp
+Total time was 1.593170 seconds.
++ export OMP_NUM_THREADS=16
++ OMP_NUM_THREADS=16
++ ./floyd_omp
+Total time was 1.185650 seconds.
++ export OMP_NUM_THREADS=20
++ OMP_NUM_THREADS=20
++ ./floyd_omp
+Total time was 0.885004 seconds.
++ export OMP_NUM_THREADS=24
++ OMP_NUM_THREADS=24
++ ./floyd_omp
+Total time was 0.707764 seconds.
++ export OMP_NUM_THREADS=28
++ OMP_NUM_THREADS=28
++ ./floyd_omp
+Total time was 0.574075 seconds.

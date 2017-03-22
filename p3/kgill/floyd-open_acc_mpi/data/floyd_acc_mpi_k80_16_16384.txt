@@ -1,0 +1,81 @@
+matrix_dim, etime, flops, cores
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+There are not enough slots available in the system to satisfy the 16 slots 
+that were requested by the application:
+  ./floyd_acc_mpi_16384.out
+
+Either request fewer slots for your application, or make more slots available
+for use.
+--------------------------------------------------------------------------

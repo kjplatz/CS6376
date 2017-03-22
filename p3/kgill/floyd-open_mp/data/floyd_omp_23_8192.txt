@@ -1,0 +1,2 @@
+matrix_dim, etime, flops, cores
+8192, 52.484663, 20949198583.517628, 23
