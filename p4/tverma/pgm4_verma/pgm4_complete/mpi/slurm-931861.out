@@ -1,0 +1,9 @@
++ mpirun --mca mpi_cuda_support 0 -np 1 ./mpi_cannon01
+Matrices A, B, and C created. 
+Matrices A and B rearranged for multiplication. 
+Multiplying A and B... 
+
+-------------------------------------------------------------------------------------------------------------
+N = 16384, Processes = 1, Time = 11610.286 seconds.
+Performance =  0.757 GFLOPS. 
+-------------------------------------------------------------------------------------------------------------

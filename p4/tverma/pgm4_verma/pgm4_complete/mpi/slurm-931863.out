@@ -1,0 +1,5 @@
++ mpirun --mca mpi_cuda_support 0 -np 9 ./mpi_cannon09
+Matrices A, B, and C created. 
+Matrices A and B rearranged for multiplication. 
+Multiplying A and B... 
+slurmstepd: *** JOB 931863 ON r628 CANCELLED AT 2017-03-24T21:00:44 DUE TO TIME LIMIT ***

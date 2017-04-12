@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=16
+#SBATCH -t 6:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=tarunesh.verma@utd.edu
+
+module unload icc
+module load pgi
+module load mpi/pgi_openmpi
+mpicc -o mpi_cannon16 mpi.c
+set -x
+mpirun --mca mpi_cuda_support 0 -np $SLURM_NTASKS ./mpi_cannon16

@@ -1,0 +1,35 @@
+#!/bin/bash
+##Author:Anay Sonawane
+##File Name: job_openmp.job
+#SBATCH -N 1
+#SBATCH -p RM
+#SBATCH --ntasks-per-node 28
+#SBATCH -t 5:00:00
+
+#MAX_NUM_THREADS=28
+
+module load pgi
+
+pgcc -O2 -mp cannon_openmp.c
+
+# echo commands to stdout 
+set -x
+
+for var in 1 4 16
+do
+	#N=100
+	#while [ $N -le 4000 ]
+ 	#do	
+ 	#	export OMP_NUM_THRADS=$var
+ 	#	#./a.out $N
+	#	N=`expr $N + 100`
+	#done
+		
+	for p in 256 512 1024 2048 4096 
+	do
+		export OMP_NUM_THREADS=$var
+		./a.out $p
+	done
+done
+
+

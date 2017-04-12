@@ -1,0 +1,44 @@
++ export OMP_NUM_THREADS=2
++ OMP_NUM_THREADS=2
++ ./matrix_omp
+Total time was 2.136791 seconds.
++ export OMP_NUM_THREADS=3
++ OMP_NUM_THREADS=3
++ ./matrix_omp
+Total time was 1.274138 seconds.
++ export OMP_NUM_THREADS=4
++ OMP_NUM_THREADS=4
++ ./matrix_omp
+Total time was 1.024149 seconds.
++ export OMP_NUM_THREADS=5
++ OMP_NUM_THREADS=5
++ ./matrix_omp
+Total time was 0.821581 seconds.
++ export OMP_NUM_THREADS=6
++ OMP_NUM_THREADS=6
++ ./matrix_omp
+Total time was 0.676980 seconds.
++ export OMP_NUM_THREADS=8
++ OMP_NUM_THREADS=8
++ ./matrix_omp
+Total time was 0.538941 seconds.
++ export OMP_NUM_THREADS=12
++ OMP_NUM_THREADS=12
++ ./matrix_omp
+Total time was 0.354227 seconds.
++ export OMP_NUM_THREADS=16
++ OMP_NUM_THREADS=16
++ ./matrix_omp
+Total time was 0.294950 seconds.
++ export OMP_NUM_THREADS=20
++ OMP_NUM_THREADS=20
++ ./matrix_omp
+Total time was 0.234281 seconds.
++ export OMP_NUM_THREADS=24
++ OMP_NUM_THREADS=24
++ ./matrix_omp
+Total time was 0.195202 seconds.
++ export OMP_NUM_THREADS=28
++ OMP_NUM_THREADS=28
++ ./matrix_omp
+Total time was 0.157411 seconds.
